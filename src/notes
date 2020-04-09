@@ -1,0 +1,334 @@
+-------------------------------------THE GOOGLE BOOKS API------------------------------------------------------
+- for some operations you only need an api key but for others you need to authenticate through OAuth
+
+WAYS TO CALL THE API
+- you can use REST directly. REST is a style of software architecture that provides a convenient and
+consistent way to request and modify data.
+- in REST resources are stored in a data store, a client sends a request that the server perform a
+particular action(like get) and the server performs the action and sends a response. If we were going to use
+fetch, it uses a RESTful approach
+- so basically we send the request through the url
+- the googleBooks API url should be in this form:
+
+    https://www.googleapis.com/books/v1/{collectionName}/resourceID?parameters
+
+- where the resourceID is the identifier for a volume or bookshelf resource. The parameters are any parameters
+that apply to the query.
+
+- this is how you would do a search for quilting
+
+    GET https://www.googleapis.com/books/v1/volumes?q=quilting
+
+REST FROM JAVASCRIPT
+- you can invoke the books API using REST from JAVASCRIPT (also called JSON-P), using the callback query
+parameter and a callback function. this allows is to write rich aplications that display book data
+without having to write any server side code.
+
+- you only need to an OAuth2.0 token if you require access to the users private data. you can provide an
+API key but you don't have to. So for this application. I am going to use an OAuth 2.0 token
+
+
+STEPS FOR ANY GOOGLE API
+1) register the application with the google API console. google then provides a client id and a client secret
+2)activate the Books API in the Google API console, if API isnt listed, then you can skip this step
+3) When your application needs access to user data, it asks Google for a particular scope of access
+4) google displays a consent screen ro the user, asking them to authorize your application to request
+some of their data
+5) if the user approves, then Google gives your application a short-lived access token.
+6) Your application requests user data, attaching the access token to the request
+7) If google determins that your request and the token are valid, it returns the requested data.
+
+
+OAUTH 2.0 authentication
+1) obtain OAuth 2.0 credentials from the google API console(client id and client secret). A javascript
+application does not need a secret but a webserver application does.(done)
+
+2)Obtain an access token from the Google Authorization Server
+- before the aplication can access private data using a Google API, it must obtain an access token that
+grants access to that API. A single access token can grant varying degrees of access to multiple APIs
+A variable parameter called scope controls the set of resources and operations that an access token
+permits. During the access-token request, your application sends one or more values in the scope parameter
+- for this, our application will probably do this by making our user log into google
+
+3)examine scopes of access granted by user
+- check to see if your applications scope matches with the scope that the user allowed, disable any
+feature that does not have the proper scope to function. refer to the specific google API documentation
+to see what scopes are needed
+
+4) Send the access token to the API
+- once the application obtains an access token, it sends the token to a Google API in an HTTP
+authorization request header. do not send the token as URL query-string parameters, it is unsecure.
+- that token is only good for that specific api
+
+5) refresh the access token, if necessary.
+-Access tokens have limited lifetimes. If your application needs access to a Google API beyond the
+lifetime of a single access token, it can obtain a refresh token. A refresh token allows your
+application to obtain new access tokens. There are only a certain amount of refresh tokens allowed
+if you request too many refresh tokens then the old ones will stop working
+
+
+
+JAVASCRIPT APPLICATION
+- the authorization sequence begins like this: the application redirects a browser to a Google URL; the URL
+includes query parameters that indicate they type of access being requested. Google handles the user
+authentication, session selection, and user consent. The result is an access token, which the client
+should validate before including it in a Google API request. When the token expires, the application repeats
+the process
+
+
+OAUTH 2.0 FOR CLIENT SIDE WEB APPLICATIONS
+- for our app the flow will go like this. app opens a Google URL that uses the query parameters to identify
+our app and the type of API access that the app requires. The user can the authenticate with google and
+grant the requested permissions. google then redirects the user back to the app. The redirect includes an
+access token, which our app verifies and then uses to make API requests
+
+ENABLE API's FOR A PROJECT
+1) open the API library in the Google API Console.
+
+2) if prompted, select a project, or create a new one.
+
+3)The API library lists all available API's grouped by product family and popularity. if the API you want
+to enable isnt visible in the list, use search to find it, or click View All in the product family it
+belongs to.
+
+4) Select the API you want to enable, then click the Enable button
+
+5) if Prompted, enable billing (I shouldn't have to )
+
+6)if prompted, read and accept the API's terms of service.
+
+
+CREATE AUTHORIZATION CREDENTIALS (done)
+- any application that uses OAuth 2.0 to access Google API's must have authorization credentials that
+identify the application to google's server
+- just go to the credentials page and click the create credentials button and then go form there
+
+
+IDENTIFY ACCESS SCOPES
+-the only scope that the books api needs is the books scope.
+
+
+OBTAINING OAUTH 2.0 ACCESS TOKENS:
+1) configure the client object
+-if you are using Google API's client library for JavaScript to handle the OAuth 2.0 flow, the first
+step is to configure the gapi.auth2 and gapi.client objects. these objects enable your application
+to obtain user authorization and to make authorized API requests.
+- the client object identifies the scopes that the application is requesting permission to access. These
+values inform the consent screen that Google displays to the user.
+
+- the Javascript client library simplifies numerous aspects of the authorization process:
+  1) it creates a redirect URL for Google's authorization server and provides a method to direct the user
+  to that URL
+  2) it handles the redirect from that server back to your application
+  3)it validates the access token returned by the application
+  4) it stores the access token that the authorization server send to your application and retrieves
+  it when your application makes authorized API calls.
+
+- the gapi.client object needs to be initialized so the application can use it to make api calls later.
+When that object is created the gapi.auth2 object.client object will be used to check and monitor the user's
+authorization status, will alos be initialized
+
+- the call to gapi.client.init specifies the following:
+  - the apiKey and clientId. These are the credentials that you get from the API console
+  -the scope field, which is the info that the application requests from the user. The info that our application
+  requests is only access to their google books info. use incremential authorization to help users
+  understand why your app uses the info that it does.
+  - the discoveryDocs field identifies a list of API Discovery documents that your application uses. An API
+  Discovery document describes the surface for a particular version of an API. The information
+  includes API name, API version, API description, resoure schemas, method definitions, authentication
+  requirements and more. So basically these documents given us all the info on what API we are using. The
+  API documentation should provide us with a Discovery URL but if not,we can alwasy make one.
+
+  STEP 2 REDIRECT TO GOOGLE'S 0AUTH 2.0 SERVER:
+    -all you have to do is call GoogleAuth.signIn();. in practice you application should set a boolean
+    value to determin whether to call the signIn() method.
+    -step three is jsut google redirecting the user.
+
+
+  SETP 4 HANDLLE THE OAUTH 2.0 SERVER RESPONSE:
+    -after your application obtains an access token, you can use the Javascript library to make api
+    requests on the user's behalf. The client library manages the access token for you and you do not
+    need to do anything special to send it in the request
+
+    - so now I have a general sense on how to get things set up,I will now read over using the api
+    and then get started with my application
+
+
+  - now that I start to think about what I have to do. I need to have a class component to use the
+  life cycle methods so that I can access to it. So i will need a state. for now lets just have a basic
+  state and see what happens. if things get too complicated, I can add redux later. I will also checkout
+  what react hooks are
+
+
+REACT HOOKS:
+    - they let you use state and other react features without writing a class.
+    - for the moment lets not look into hooks. for our next aplicaiton lets use hooks but not this one
+
+
+
+CREATING A REACT COMPONENT:
+    - we will be using the ES6 class to define a component
+    - in a class component, props becomes this.props
+    - when you want to render something to the Dom for the first time. This is called "mounting" in React
+    - whenever you clear the DOM of somethign that has been rendered, this is called "unmounting" in React
+    - lifecycle methods are methods that are called when a component mounts or unmounts
+    - componentDidMount is where we will be running our api call
+    - this is how you correctly set the state this.setState({comment:'hello'})
+
+
+THE COMPONENT LIFECYCLE:
+  1)Mounting
+  - the methods that are called in this stage are,constructor, getDerivedStateFromProps,render,componentDidMount
+
+  2)Updating
+  -An update can be caused by changes to props or state. These methods are called in the following order
+  static getDerivedStateFromProps() shouldComponentUpdate() render() getSnapshotBeforeUpdate() and lastly
+  componentDidMount()
+
+  3) Unmounting
+  - the method that gets called when a component is being removed from the DOM is componentwillUnmount
+
+
+  render():
+    - this is the only method that is required in a class component.
+    - the render function must render a REact element. actualy there are many more things it can render
+    but for the moment lets just say only React elements
+    - the render function should be a pure function, meaning that it returns the same thing each time
+    it does not directly interact with the browser. if you need to interact with the browser, you should
+    do it in componentDidMount() or the other lifecycle methods instead
+
+  constructor():
+    -if you don't initialize state and you don't bind methods, you don't need to implement a constructor
+    for your REact component.the constructor is called before it is mounted.When impolementing the
+    constructor for a REAct.COmponent subclass, you should call super(props) before any other statement.
+    if you do not do this, then this.props will be undefined int he constructor, which can lead to bugs
+    - typically in React constructors are only used for two purposes, initializing local state by
+    assiging an object to this.state and fofr Binding event handler methods to an instance
+
+
+  componentDidMount:
+    -this is invoked immediately after a component is mounted(inserted into the tree). Initialization that requires
+    Dom nodes(HTML element) should go here. this is also where we are going to make the API call.This is also a good
+    place to set ups any subscriptions. subscriptions are just real time data, that you get from somewhere. always
+    listening to that data source.
+    - ok so now that I have tried to step around making this app.... it's finally time to try and get this api working
+    - I think it's because I am scared of how far I have to go, in this app and in life in general. I see the path before
+    me, it looks long and hard and that scared me... but not anymore.
+
+
+    FINALLY GETTING THE ACTUAL API TO WORK:
+      1) the first piece of code I am putting into the componentDidMount() will initialize the gapi.client object. This
+      will be used for later api calls
+      - the problem that we are getting is that gapi is not defined, ok well wtf is gapi and where does it come from.
+      So the GAPI is Google's client library for browser-side javascript.So to use this GAPI you need to load a script
+      in the html file
+      - so apparently all I had to do was add window.gapi and that made everything work.
+      - now It's time to see how the fuck the whole function works
+
+      HOW THE HECK DOES AN API KEY EVEN WORK:
+        -api's are simple excrypted strings that can be used when calling cerain APIs that don't need to access private
+        user data
+        - Do not embed API keys directly in code. API keys that are embeded in code can be accidently exposed to the
+        public. Store them in enviroment varibes or in files outsude outside of your application's source tree.
+        - delete unneeded API keys to minimize exposure to attacks
+
+        - so now I have everything set up. I just need to find the proper path that I need to send the request to.
+        - our app for the time being will not be using authenticated data. anything under my Library is considered to
+        be private and can not be accessed without the proper credentials.
+        - when the api requests public information, it needs an identifier, which is the API KEY
+
+        - the books api data model is based on groups of resources, called collections
+        - the volume collection is a collection of every valume resource managed by google Books
+        - the calling style that we are going to use is REST form Javascript
+
+            EXAMPLE CALL FOR THE API:
+
+              https://www.googleapis.com/books/v1/{collectionName}/resourceID?parameters
+
+              GET https://www.googleapis.com/books/v1/volumes?q=quilting  -this is without the resoure ID
+
+        - a volume represents the data that Google Books hosts about a book or magazinge. It is the primary resource in
+        the books API
+
+        - a bookshelf is a collection of volumes. Google Books Provides a set of predefined bookshelves for each user,
+        some of which are completely managed by the user
+        - holy fucking shit bud.... I made a success full request. Thats fucking deadly!!!!!!!
+        - but I dont want to call this function right away. want to call the start function when the user clicks the
+        search button and we will want to add the nessesarry data to the state.
+
+  - you need to specify ID fields with a certain API method calls. There are three types of IDs used within Google Books
+  1) Volume Ids - Unique strings given to each volume that Google Books knows about(info on idividual books)
+
+  2)Bookshelf IDs - Numberic vlaues given to a bookshelf in a user's library. A bookshelf is just a collection
+  of volumes(books)
+
+  3)Users IDs - Unique numberic values assigned to each user. These values are not necessarily the same ID value used
+  in other Google services
+
+  - the API results are restricted based on your server or client application's IP adress
+  - soooo right now I am getting a 503 error which means that something is wrong with the server, So I guess Ill
+  just work on the state and get Redux implemented. So If I still get the error tomorrow then I will delete my API key
+  and try with a new one.
+
+
+
+
+  REDUX:
+    - the whole state of your app is stored in an object tree inside a single store. The only way to change the state
+    tree is to emit an action, an object describing what happened.To specify how the actions transform the state tree,
+    you write  pure reducers.
+    - so actions describe what happens and then reducers take that information and change the state accordingly.
+    - the shape of the state is up to us.
+    - state is the data and store is where the data is kept
+    - Redux gives you a store and lets you keep state in it and get state out, and responds when the state changes. But
+    that is all it does. Its actually react-redux that lets you connect pieces of the state to React components, so
+    react-redux gives us all the HOCs and the methods that connect the state. actually redux knows nothing about redux
+    at all.
+    - what connect does is hook into Redux, pull out the entire state and pass it through the mapStateToProps function that
+    you provide. This needs to be a custom function, because only you will know the state.
+    - the object that gets returned from mapStateToProps gets fed into the component as the props.
+
+    - redux holds the global state for the entire app and by wrapping the entire app with the Provider component
+    from react-redux, ever component in the app tree will be able to use connect to access the Redux store if it
+    wants to.
+
+    - actions are just plain Javascript objects and action creators just return those objects
+    - right now I want to make this a module design, so I don't muddle  up the global name space.
+
+    MODULE DESIGN PATTER:
+      - when exporting a module under the module pattern we will assign in IIFE to a variable and then export That
+      varible.
+      - inside the IIFE we will return an object that has the functions as the parameters
+      - this pattern also allows us to create private varibles that only the returned methods have access to
+      - because the private properties are not returned, they are not available outside of the module
+      - we now have our action creators in a module pattern design.
+
+      ACTION CREATORS:
+        - action creators simply return an action which is just a plain javascript object.Actions must be dispatched to
+        the store, this is done manualy but in our application this will be done by the connect function
+
+      REDUCER:
+        -reducers specify how the application's state changes in response to actions sent to the store
+        - so this is where we need to start thinking about the shape of our state. Think, "what is the minimal amount
+        of javascript do I need to write to represent the state".
+        - in order to get a better sense of what the shape of the state should be. I am going to read up on react Forms
+        - a reducer is a pure function that takes the previous state and an action and returns the next state
+        - so what er want to do right now is set up an action that gets fired form the search form and changes the state,
+        we will eventualy change that to a asyncronous action creator that gets fired off.
+        - we are using The object React/Spread properties for the state so ...state
+
+        - we are using rest elements for array destructuring assignment, which is this part {...state}
+
+        - we are then using the spread elements for array literals. which is just the ...state part
+        - we then use rest properties and the spread properties to create an object literal of the new state.
+
+        WTF ARE THE ... ACTUAL:
+          - the dots are actually used by two operators. The Spread operator and the Rest operator
+          - the spread operator lets you expand an iterable like a string, object or array into its elements while the Rest
+          operator does the inverse by reducing a set of elements into one array
+          - actualy the spread operator lets you expand an iterable but objects by themselves are not iterable
+
+        - so even though I only have one Reducer I am going to export it an combind it before I create the store
+        because eventualy I will have to do it when I create an app that grows
+        - you can rewrite the main reducer as a function that calls the reducers managing parts of the state, and combines
+        them into a single object. It also doesnt need to know the complete initial state any more. 
