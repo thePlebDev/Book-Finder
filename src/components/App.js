@@ -1,11 +1,12 @@
 import React from 'react';
 
+import FormAPI from './API'
 
 
 const App = ()=>{
     return(
         <div>
-          I can do this shit.
+            <FormAPI />
         </div>
     )
 }

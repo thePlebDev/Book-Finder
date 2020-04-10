@@ -1,6 +1,8 @@
 import React from 'react';
+import { connect } from 'react-redux'
 
 import API_KEY from './keys/apiKeys' // REMOVE BEFORE PUSHING
+import searchCreator from '../Redux/ActionCreators/creators';
 
 
 class API extends React.Component{
@@ -38,5 +40,17 @@ class API extends React.Component{
         )
     }
 }
+
+function mapStateToProps(state){
+    return{
+        state
+    }
+}
+
+const actionCreators={
+    searchCreator
+}
+
+
 
 export default API

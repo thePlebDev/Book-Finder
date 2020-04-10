@@ -321,6 +321,7 @@ THE COMPONENT LIFECYCLE:
 
         - we are then using the spread elements for array literals. which is just the ...state part
         - we then use rest properties and the spread properties to create an object literal of the new state.
+        - for the time being, no actual side effects in the reducer
 
         WTF ARE THE ... ACTUAL:
           - the dots are actually used by two operators. The Spread operator and the Rest operator
@@ -331,4 +332,36 @@ THE COMPONENT LIFECYCLE:
         - so even though I only have one Reducer I am going to export it an combind it before I create the store
         because eventualy I will have to do it when I create an app that grows
         - you can rewrite the main reducer as a function that calls the reducers managing parts of the state, and combines
-        them into a single object. It also doesnt need to know the complete initial state any more. 
+        them into a single object. It also doesnt need to know the complete initial state any more.
+        - the {...state} is spreading the state object into the newly created object literal.
+        - so it is the inner workings of the spread operator that got me thinking. so I will check that out.
+        - so it seems to be an underlying principle of how objects work, of when you define a two properties on an object
+        that have the same name, the one lower down on the object will be the one that is shown. I will read an intro on
+        how objects work.
+        - so propertie names on an object must be ququie
+        - on the {..state: text:action.payload.text}, we are spreading the state and over riding the text property
+        - we will use the combineReducers() method to combine the reducers into a single reducer that we can pass to the
+        store
+
+      WTF ARE THE REST PARAMETERS:
+        - in a way rest syntax is the opposite of the spread syntax. Spread syntaz expands an array into its elements
+        while rest syntaz collects multiple elements and "condenses" them into a single element.
+        - the rest parameters are for combinding
+
+      COMBINEREDUCERS(reducers):
+        - we use this when we want to split teducing functions into separate functions, each managing independent
+        parts of the state.
+        - it turns all the reducer functions into a single reducer funciton that we can pass to createStore()
+        - the resulting reducer calls every child reducer, and gathers their results into a single state object.
+        - the state produced by combineReducers() namespaces the states of each reducer under their keys as passed to
+        combinereducer()
+        - it must never return undefined
+        - you can even write your own verson of this method
+        - so the return value will be one big object with the keys being what we passed to the combineReducers()
+
+      THE STORE:
+        - the store is what brings the actions and reducers together. it holds the applications state and allows
+        access the the getState();
+        - to create a store you just pass a reducer into the createStore method. in our case we will be creating a store
+        with the mainReducer
+        - but then I am pretty sure that we have to use react-redux to make everything work together.
